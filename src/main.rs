@@ -2,7 +2,8 @@ use glutin_window::GlutinWindow;
 use graphics::{Context, Rectangle, Graphics};
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::event_loop::{EventSettings, Events};
-use piston::{EventLoop, RenderEvent, UpdateEvent, MouseCursorEvent, WindowSettings, UpdateArgs};
+use piston::{RenderEvent, UpdateEvent, MouseCursorEvent, WindowSettings, UpdateArgs};
+use vecmath::{vec2_add, vec2_normalized, vec2_scale, vec2_sub};
 
 
 struct App {
@@ -23,8 +24,13 @@ impl App {
         }
     }
 
-    fn update(&mut self, args: &UpdateArgs) {
-        // args.dt
+    fn update(&mut self) {
+        // let speed = 1.0 * args.dt;
+        let speed = 1.0;
+        for bird in &mut self.birds {
+            let direction = vec2_scale(vec2_normalized(vec2_sub(self.mouse, *bird)), speed);
+            *bird = vec2_add(*bird, direction);
+        }
     }
 
     fn update_mouse(&mut self, pos: [f64; 2]) {
@@ -34,13 +40,13 @@ impl App {
 
 fn main() {
     let opengl = OpenGL::V3_2;
-    let settings = WindowSettings::new("Sudoku", (640, 480))
+    let settings = WindowSettings::new("The Swarm", (640, 480))
         .exit_on_esc(true)
         .graphics_api(opengl)
         .vsync(true);
     let mut window: GlutinWindow =
         settings.build().expect("Could not create window");
-    let mut events = Events::new(EventSettings::new().lazy(true));
+    let mut events = Events::new(EventSettings::new());
     let mut gl = GlGraphics::new(opengl);
 
     let mut app = App {mouse: [0.0; 2], birds: Vec::new()};
@@ -56,11 +62,12 @@ fn main() {
                 clear([0.22, 0.22, 0.22, 1.0], g);
                 app.draw(&c, g);
             });
+            app.update();
         }
 
-        if let Some(args) = e.update_args() {
-            app.update(&args);
-        }
+        // if let Some(args) = e.update_args() {
+        //     app.update(&args);
+        // }
 
         if let Some(pos) = e.mouse_cursor_args() {
             app.update_mouse(pos);
