@@ -3,9 +3,16 @@ use graphics::{Context, Rectangle, Graphics};
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::event_loop::{EventSettings, Events};
 use piston::{RenderEvent, MouseCursorEvent, WindowSettings};
-use vecmath::{vec2_add, vec2_normalized, vec2_scale, vec2_sub};
+use vecmath::{vec2_add, vec2_normalized, vec2_scale, vec2_sub, vec2_len};
 use rand::Rng;
 
+
+struct Bird {
+    pos: [f64; 2],
+    color: [f64; 4],
+    min_size: f64,
+    speed: f64
+}
 
 struct App {
     mouse: [f64; 2],
@@ -14,8 +21,12 @@ struct App {
 
 impl App {
     fn draw<G: Graphics>(&mut self, c: &Context, g: &mut G) {
-        let size = 50.0;
+        let min_size = 10.0;
         for bird in &self.birds {
+            let distance = vec2_len(vec2_sub(*bird, self.mouse));
+            // TODO: make window size available in app
+            let multiplier = (distance / 640.0 + distance / 480.0) / 2.0;
+            let size = min_size + multiplier * 80.0;
             Rectangle::new([1.0; 4]).draw(
                 [bird[0] - size / 2.0, bird[1] - size / 2.0, size, size],
                 &c.draw_state,
